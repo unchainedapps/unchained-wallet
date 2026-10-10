@@ -1,69 +1,142 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect, useCallback } from "react";
+import { Plus } from "lucide-react";
+import BalanceCard from "./components/BalanceCard";
+import TransactionItem from "./components/TransactionItem";
+import TransactionForm from "./components/TransactionForm";
+import Card from "./components/Card";
+import EmptyState from "./components/EmptyState";
+import PageTransition from "./components/PageTransition";
+import {
+  getTransactions,
+  getMonthlyStats,
+  getTotalBalance,
+  getProfile,
+  deleteTransaction,
+} from "./lib/store";
+import { ArrowLeftRight } from "lucide-react";
+import type { Transaction, MonthlyStats } from "./lib/types";
+import Link from "next/link";
+
+export default function Dashboard() {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [stats, setStats] = useState<MonthlyStats>({
+    income: 0,
+    expenses: 0,
+    balance: 0,
+    transactionCount: 0,
+  });
+  const [totalBalance, setTotalBalance] = useState(0);
+  const [currencySymbol, setCurrencySymbol] = useState("$");
+  const [showForm, setShowForm] = useState(false);
+
+  const refresh = useCallback(() => {
+    setTransactions(getTransactions().slice(0, 5));
+    setStats(getMonthlyStats());
+    setTotalBalance(getTotalBalance());
+    setCurrencySymbol(getProfile().currencySymbol);
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  function handleDelete(id: string) {
+    deleteTransaction(id);
+    refresh();
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <PageTransition>
+      <div className="space-y-4 pb-4">
+        {/* Balance Card */}
+        <BalanceCard
+          balance={totalBalance}
+          income={stats.income}
+          expenses={stats.expenses}
+          currencySymbol={currencySymbol}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+
+        {/* Recent Transactions */}
+        <Card padding="sm">
+          <div className="flex items-center justify-between px-3 pt-2 pb-1">
+            <h2 className="text-sm font-medium text-charcoal">
+              Recent Transactions
+            </h2>
+            <Link
+              href="/transactions"
+              className="text-xs text-warm-gray hover:text-charcoal transition-colors"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+              See all
+            </Link>
+          </div>
+
+          {transactions.length > 0 ? (
+            <div className="px-3">
+              {transactions.map((tx, i) => (
+                <div key={tx.id}>
+                  <TransactionItem
+                    transaction={tx}
+                    currencySymbol={currencySymbol}
+                    onDelete={handleDelete}
+                  />
+                  {i < transactions.length - 1 && <hr className="divider" />}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={<ArrowLeftRight size={24} />}
+              title="No transactions yet"
+              description="Tap the + button to add your first income or expense."
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          )}
+        </Card>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 gap-3">
+          <Card padding="md">
+            <p className="text-xs text-warm-gray mb-0.5">This Month</p>
+            <p className="text-lg font-semibold text-charcoal tabular-nums">
+              {stats.transactionCount}
+            </p>
+            <p className="text-[11px] text-warm-gray">transactions</p>
+          </Card>
+          <Card padding="md">
+            <p className="text-xs text-warm-gray mb-0.5">Monthly Net</p>
+            <p
+              className={`text-lg font-semibold tabular-nums ${
+                stats.balance >= 0 ? "text-charcoal" : "text-error"
+              }`}
+            >
+              {stats.balance >= 0 ? "+" : "-"}
+              {currencySymbol}
+              {Math.abs(stats.balance).toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </p>
+            <p className="text-[11px] text-warm-gray">income − expenses</p>
+          </Card>
         </div>
-      </main>
-    </div>
+      </div>
+
+      {/* FAB */}
+      <button
+        onClick={() => setShowForm(true)}
+        className="fixed bottom-24 right-5 md:bottom-8 md:right-8 z-30 w-14 h-14 rounded-2xl bg-charcoal text-white flex items-center justify-center shadow-lg hover:bg-charcoal/90 active:scale-95 transition-all"
+        aria-label="Add transaction"
+      >
+        <Plus size={24} />
+      </button>
+
+      {/* Transaction Form Modal */}
+      <TransactionForm
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        onSaved={refresh}
+      />
+    </PageTransition>
   );
 }

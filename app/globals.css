@@ -1,26 +1,195 @@
 @import "tailwindcss";
 
+/* ──────────────────────────────────────────────
+   Unchained Wallet — Design Tokens
+   ────────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-charcoal: #20201F;
+  --color-gold: #C4A168;
+  --color-ivory: #F7F4ED;
+  --color-white: #FFFFFF;
+  --color-warm-gray: #77736C;
+  --color-pale-stone: #E7E1D7;
+  --color-gold-tint: #F0E5D0;
+  --color-error: #B85C5C;
+
+  --background: var(--color-ivory);
+  --foreground: var(--color-charcoal);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-charcoal: #20201F;
+  --color-gold: #C4A168;
+  --color-ivory: #F7F4ED;
+  --color-warm-gray: #77736C;
+  --color-pale-stone: #E7E1D7;
+  --color-gold-tint: #F0E5D0;
+  --color-error: #B85C5C;
+  --font-sans: var(--font-inter);
 }
 
-@media (prefers-color-scheme: dark) {
+/* ──────────────────────────────────────────────
+   Base Styles
+   ────────────────────────────────────────────── */
+
+body {
+  background: var(--color-ivory);
+  color: var(--color-charcoal);
+  font-family: var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* Standalone PWA: account for safe areas */
+@supports (padding: env(safe-area-inset-bottom)) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ──────────────────────────────────────────────
+   Scrollbar Styling
+   ────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-pale-stone);
+  border-radius: 2px;
+}
+
+/* ──────────────────────────────────────────────
+   Selection
+   ────────────────────────────────────────────── */
+
+::selection {
+  background: var(--color-gold-tint);
+  color: var(--color-charcoal);
+}
+
+/* ──────────────────────────────────────────────
+   Input Resets
+   ────────────────────────────────────────────── */
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ──────────────────────────────────────────────
+   Bottom Navigation Safe Area
+   ────────────────────────────────────────────── */
+
+.pb-safe {
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* ──────────────────────────────────────────────
+   Card Component
+   ────────────────────────────────────────────── */
+
+.card {
+  background: var(--color-white);
+  border: 1px solid var(--color-pale-stone);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.card-hover {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card-hover:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-color: var(--color-warm-gray);
+}
+
+/* ──────────────────────────────────────────────
+   Button Base
+   ────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  border-radius: 12px;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  line-height: 1;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--color-charcoal);
+  color: var(--color-white);
+  padding: 0.75rem 1.5rem;
+}
+
+.btn-primary:hover {
+  background: #333330;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-charcoal);
+  border: 1px solid var(--color-pale-stone);
+  padding: calc(0.75rem - 1px) calc(1.5rem - 1px);
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-warm-gray);
+  background: var(--color-ivory);
+}
+
+.btn-gold {
+  background: var(--color-gold);
+  color: var(--color-white);
+  padding: 0.75rem 1.5rem;
+}
+
+.btn-gold:hover {
+  background: #b89558;
+}
+
+.btn-danger {
+  background: var(--color-error);
+  color: var(--color-white);
+  padding: 0.75rem 1.5rem;
+}
+
+.btn-danger:hover {
+  background: #a54e4e;
+}
+
+/* ──────────────────────────────────────────────
+   Divider
+   ────────────────────────────────────────────── */
+
+.divider {
+  height: 1px;
+  background: var(--color-pale-stone);
+  border: none;
 }
